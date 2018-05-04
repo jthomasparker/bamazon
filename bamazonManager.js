@@ -4,6 +4,7 @@ var inquirer = require('inquirer')
 var mysql = require('mysql')
 var Table = require('cli-table')
 var loading = require('loading-cli')
+var helpers = require('inquirer-helpers')
 var db = mysql.createConnection({
     host: keys.dbConfig.host,
     port: keys.dbConfig.port,
@@ -16,13 +17,14 @@ var load = loading({
     "color":"yellow",
     "interval":100,
    // "stream": process.stdout,
-    "frames":["*    ", " *   ", "  *  ", "   * ", "    *", "   * ", "  *  ", " *   "]
+    "frames":["|*     ", "/ *    ", "-   *  ", "|    * ", "/     *", "-    * ", "|   *  ", "/  *   ", "- *    "]
 })
 
 function loadMenu(){
-    console.log("************")
-    console.log("Manager Mode")
-    console.log("************")
+    
+    console.log("  ************************")
+    console.log("  *     Manager Mode     *")
+    console.log("  ************************")
     inquirer.prompt([
         {
             name: "menuItem",
@@ -49,8 +51,7 @@ function loadMenu(){
                 addProduct()
                 break;
             case "Exit":
-                db.end()
-                console.log("Manager Mode Exited")
+                end()
             default:
                 return;
         }
@@ -58,6 +59,7 @@ function loadMenu(){
 }
 
 function getProducts(col, condition, callback){
+    console.log('\033[2J')
     var query = "SELECT * FROM products WHERE " + col + condition
     db.query(query, function(err, result){
         if(err) throw err
@@ -103,6 +105,7 @@ function addInventory(){
             }
         }
     ]).then(function(answers){
+        console.log('\033[2J')
         load.text = "Retrieving Item Record"
         load.start()
         var prodName = '';
@@ -112,13 +115,17 @@ function addInventory(){
             db.query("SELECT * FROM products WHERE item_id=" + answers.item, function(err, product){
                 if((err)|| product.length === 0){
                     load.fail("Invalid ID!")
-                    addInventory()
+                    setTimeout(function(){
+                        nextAction("Try Again", function(){
+                            getProducts("stock_quantity", ">=0", addInventory)
+                        })
+                    },1200)
+                    
                 } else {
                 prodName = product[0].product_name
                 prevQty = product[0].stock_quantity
                 newInventory += prevQty
                 load.text = "Updating Inventory"
-               // load.stop()
                setTimeout(function(){
                 db.query(
                     "UPDATE products SET ? WHERE ?",
@@ -133,7 +140,9 @@ function addInventory(){
                     function(err){
                         if(err){
                         load.fail("Failed to Update Inventory")
-                        nextAction("Try Again", addInventory)
+                        nextAction("Try Again", function(){
+                            getProducts("stock_quantity", ">=0", addInventory)
+                        })
                         } else {
                         load.succeed("Inventory Updated Successfully!")
                         var updatedInvTable = new Table({
@@ -143,7 +152,10 @@ function addInventory(){
                         updatedInvTable.push(items)
                         console.log(updatedInvTable.toString())
                             setTimeout(function(){
-                                nextAction("Add More Inventory", addInventory)
+                              //  nextAction("Add More Inventory", addInventory)
+                              nextAction("Add More Inventory", function(){
+                                  getProducts("stock_quantity", ">=0", addInventory)
+                              })
                             }, 1500)
                         }
                 })
@@ -151,14 +163,12 @@ function addInventory(){
                 }
             })
         }, 1500)
-        
-      //  load.start();
-        
     })
 }
 
 
 function addProduct(){
+    console.log('\033[2J')
     inquirer.prompt([
         {
             type: "input",
@@ -169,15 +179,7 @@ function addProduct(){
             name: "department",
             type: "list",
             choices: ["Electronics", "Sports and Outdors", "Home Goods", "Clothing", "Create New Dept"],
-            message: "Select Department",
-            validate: function(value){
-                if(value === "Create New Dept"){
-                    console.log("You must be a supervisor!")
-                    return false;
-                } else {
-                    return true;
-                }
-            }
+            message: "Select Department"
         },
         {
             type: "input",
@@ -255,17 +257,56 @@ function nextAction(actionName, callback){
         }
     ]).then(function(answer){
         var choice = answer.next
+        console.log('\033[2J')
         if(choice === "Main Menu"){
             loadMenu()
         } else if(choice === actionName){
             callback()
         } else {
-            db.end()
-            console.log("Manager Mode Exited")
+            end()
         }
     })
 }
 
+function start(){
+    console.log('\033[2J')        
+    console.log("\n*********************************")
+    console.log("*                               *")
+    console.log("*          B a m a z o n        *")
+    console.log("*                               *")
+    console.log("*          Manager  Mode        *")
+    console.log("*                               *")
+    console.log("*********************************\n")
+load.text = "Loading..."
+load.start()
+setTimeout(function(){
+    load.stop()
+    console.log('\033[2J') 
+    loadMenu()
+}, 3000)
 
-loadMenu()
+}
+
+function end(){
+    console.log('\033[2J') 
+    load.text = "Saving Changes..."
+    load.start()
+    setTimeout(function(){
+        load.succeed("Changes Saved")
+        load.text = "Closing Connection with Database..."
+        load.start()
+        setTimeout(function(){
+            db.end()
+            load.succeed("Connection Closed")
+            load.text = "Exiting Manager Mode..."
+            load.start()
+            setTimeout(function(){
+                load.succeed("Manager Mode Exited")
+            }, 1200)
+        },1200)
+    },2000)
+}
+
+
+start()
 

@@ -16,7 +16,7 @@ var load = loading({
     "color":"yellow",
     "interval":100,
    // "stream": process.stdout,
-    "frames":["*    ", " *   ", "  *  ", "   * ", "    *", "   * ", "  *  ", " *   "]
+   "frames":["|*     ", "/ *    ", "-   *  ", "|    * ", "/     *", "-    * ", "|   *  ", "/  *   ", "- *    "]
 })
 
 function Order(){
@@ -45,7 +45,7 @@ var order = new Order()
 
 function start(){
      
-                       
+    console.log('\033[2J')        
     console.log("\n*********************************")
     console.log("*  Welcome to                   *")
     console.log("*                               *")
@@ -68,6 +68,7 @@ function newOrder(){
 }
 
 function getProducts(){
+    
     db.query("SELECT * FROM products", function(err, res){
         if(err) throw err
         var productTable = new Table({
@@ -110,6 +111,7 @@ function takeOrder(){
             }
         }
     ]).then(function(answer){
+        console.log('\033[2J')
         load.text = 'Submitting...'
         load.start()
         setTimeout(function(){
@@ -174,7 +176,7 @@ function updateOrder(product, qty){
             ],
             function(err){
                 if(err) throw err;
-                load.succeed("Item Added to Order")
+                load.succeed("Item Added to Order!")
                 var item = {
                     productName: product[0].product_name,
                     qtyOrdered: qty,
@@ -208,6 +210,7 @@ function confirm(question, callbackYes, callbackNo){
 
 
 function end(){
+    console.log('\033[2J')
     load.text = "Finalizing Order"
     load.start()
     setTimeout(function(){
@@ -221,6 +224,7 @@ function end(){
             console.log("Thanks for shopping at Bamazon!")
             console.log("*******************************\n")
             confirm("Would you like to place another order?", newOrder, function(){
+            console.log('\033[2J')
             console.log("\n*******************************")
             console.log("*        Come back soon!      *")
             console.log("*******************************\n")
