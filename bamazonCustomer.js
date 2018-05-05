@@ -32,10 +32,11 @@ function Order(){
         })
         for(i in this.items){
             var tableItems = [this.items[i].productName, this.items[i].qtyOrdered, this.items[i].itemPrice, this.items[i].total]
-            grandTotal += this.items[i].total
+            grandTotal += parseInt(this.items[i].total)
+            formattedTotal = grandTotal.toFixed(2)
             summaryTable.push(tableItems)
         }
-        summaryTable.push(['','', 'Total:', grandTotal])
+        summaryTable.push(['','', 'Total:', formattedTotal])
         console.log(summaryTable.toString())
 
     }
@@ -177,11 +178,13 @@ function updateOrder(product, qty){
             function(err){
                 if(err) throw err;
                 load.succeed("Item Added to Order!")
+                var total = qty * product[0].price
+                var formattedItemTotal = total.toFixed(2)
                 var item = {
                     productName: product[0].product_name,
                     qtyOrdered: qty,
                     itemPrice: product[0].price,
-                    total: qty * product[0].price
+                    total: formattedItemTotal
                 }
                 order.addToOrder(item)
                 confirm("Would you like to add another item to your order?", getProducts, end)
