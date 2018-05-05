@@ -19,6 +19,7 @@ var load = loading({
    "frames":["|*     ", "/ *    ", "-   *  ", "|    * ", "/     *", "-    * ", "|   *  ", "/  *   ", "- *    "]
 })
 
+// order constructor
 function Order(){
     this.items = [],
     this.addToOrder = function(item){
@@ -42,10 +43,11 @@ function Order(){
     }
 }
 
+// new order obj
 var order = new Order()
 
-function start(){
-     
+// welcome screen
+function start(){  
     console.log('\033[2J')        
     console.log("\n*********************************")
     console.log("*  Welcome to                   *")
@@ -54,28 +56,28 @@ function start(){
     console.log("*                               *")
     console.log("*                               *")
     console.log("*********************************\n")
-load.text = "Loading Bamazon"
-load.start()
-setTimeout(function(){
-    load.stop()
-    newOrder()
-}, 3000)
-    
+    load.text = "Loading Bamazon"
+    load.start()
+    setTimeout(function(){
+        load.stop()
+        newOrder()
+    }, 3000)
 }
 
+// clears previous order/starts new one
 function newOrder(){
     order.items = [];
     getProducts()
 }
 
-function getProducts(){
-    
+// gets a table of products
+function getProducts(){    
     db.query("SELECT * FROM products", function(err, res){
         if(err) throw err
         var productTable = new Table({
             head: ["ID", "Product Name", "Price"],
         })
-        
+        // load table with products
         for(i in res){
             var items = [];
             items.push(res[i].item_id, res[i].product_name, "$" + res[i].price)
@@ -87,6 +89,7 @@ function getProducts(){
     })
 }
 
+// gets the customer order
 function takeOrder(){
     inquirer.prompt([
         {
@@ -122,7 +125,7 @@ function takeOrder(){
     })
 }
 
-
+// checks the quantity in stock
 function checkQty(id, qty){
     load.text = 'Checking Stock'
     load.start()
@@ -130,14 +133,17 @@ function checkQty(id, qty){
     db.query("SELECT * FROM products WHERE item_id=" + id,
         function(err, res){
             if(err) throw err
+            // if the query returns nothing
             if(typeof(res) === undefined || res === null || res.length === 0){
                 load.fail("I'm sorry, I couldn't find that product")
                 confirm("Would you like to order something else instead?", getProducts, end)
             }
+            // if the product has 0 stock
             if(res[0].stock_quantity === 0){
                 load.fail("\nI'm Sorry, " + res[0].product_name + " is currently out of stock")
                 confirm("Would you like to order another item?", getProducts, end);
             } else {
+                // not enough in stock to fill request
                 if(qty > res[0].stock_quantity){
                     load.fail("Insufficient Stock!")
                     inquirer.prompt([
@@ -159,9 +165,9 @@ function checkQty(id, qty){
     }, 3000)
 }
 
+// updates the order
 function updateOrder(product, qty){
     var updatedQty = product[0].stock_quantity - qty
-  //  var totalPrice = qty * product[0].price
     load.text = "Updating Order"
     load.start();
     setTimeout(function(){
@@ -194,7 +200,7 @@ function updateOrder(product, qty){
 
 }
 
-
+// submenu
 function confirm(question, callbackYes, callbackNo){
     inquirer.prompt([
         {
@@ -211,7 +217,7 @@ function confirm(question, callbackYes, callbackNo){
     })
 }
 
-
+// end of app, displays order summary and asks if customer wants to place another order
 function end(){
     console.log('\033[2J')
     load.text = "Finalizing Order"

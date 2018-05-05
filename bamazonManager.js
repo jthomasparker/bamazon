@@ -20,8 +20,8 @@ var load = loading({
     "frames":["|*     ", "/ *    ", "-   *  ", "|    * ", "/     *", "-    * ", "|   *  ", "/  *   ", "- *    "]
 })
 
+// main menu
 function loadMenu(){
-    
     console.log("  ************************")
     console.log("  *     Manager Mode     *")
     console.log("  ************************")
@@ -58,6 +58,7 @@ function loadMenu(){
     })
 }
 
+// gets products based on conditional statement
 function getProducts(col, condition, callback){
     console.log('\033[2J')
     var query = "SELECT * FROM products WHERE " + col + condition
@@ -80,6 +81,7 @@ function getProducts(col, condition, callback){
 }
 
 
+// adds to inventory
 function addInventory(){
     inquirer.prompt([
         {
@@ -167,6 +169,7 @@ function addInventory(){
 }
 
 
+// adds new product
 function addProduct(){
     console.log('\033[2J')
     inquirer.prompt([
@@ -222,8 +225,7 @@ function addProduct(){
                         product_name: productName,
                         department_name: dept,
                         price: price,
-                        stock_quantity: stock
-                    
+                        stock_quantity: stock 
                     },
                 function(err){
                     if(err){
@@ -247,6 +249,7 @@ function addProduct(){
     })
 }
 
+// submenu
 function nextAction(actionName, callback){
     inquirer.prompt([
         {
@@ -268,6 +271,7 @@ function nextAction(actionName, callback){
     })
 }
 
+// starts the app
 function start(){
     console.log('\033[2J')        
     console.log("\n*********************************")
@@ -277,16 +281,16 @@ function start(){
     console.log("*          Manager  Mode        *")
     console.log("*                               *")
     console.log("*********************************\n")
-load.text = "Loading..."
-load.start()
-setTimeout(function(){
-    load.stop()
-    console.log('\033[2J') 
-    loadMenu()
-}, 3000)
-
+    load.text = "Loading..."
+    load.start()
+    setTimeout(function(){
+        load.stop()
+        console.log('\033[2J') 
+        loadMenu()
+    }, 3000)
 }
 
+// end of app
 function end(){
     console.log('\033[2J') 
     load.text = "Saving Changes..."
